@@ -3,6 +3,7 @@
 const Koa = require('koa')
 const Router = require('koa-router')
 const mongo = require('koa-mongo')
+const bodyParser = require('koa-bodyparser')
 const app = new Koa()
 
 // init environment variable
@@ -54,9 +55,14 @@ router.get('home', '/', async ctx => {
     ctx.body = "Hello Home"
 })
 
-router.post('addProducts', 'addProduct')
+router.post('addProducts', '/addProduct', async ctx => {
+    const newProduct = ctx.request.body
+    const result = await ctx.db.collection('products').insert(newProduct)
+    ctx.body = result
+})
 
 app.use(mongo(MONGODB_CONFIG))
+app.use(bodyParser())
 app.use(router.routes())
 app.use(router.allowedMethods())
 

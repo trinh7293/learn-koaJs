@@ -8,6 +8,7 @@
   "dependencies": {
     "dotenv": "^10.0.0",
     "koa": "^2.13.1",
+    "koa-bodyparser": "^4.3.0",
     "koa-mongo": "^1.9.3",
     "koa-router": "^10.1.1"
   }
