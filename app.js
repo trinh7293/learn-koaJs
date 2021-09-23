@@ -60,13 +60,14 @@ router.get('home', '/', async ctx => {
     ctx.body = "Hello Home"
 })
 
+// insert mongodb
 router.post('addProducts', '/addProduct', async ctx => {
     const newProduct = ctx.request.body
     const result = await ctx.db.collection('products').insert(newProduct)
     ctx.body = result
 })
 
-
+// upload file
 router.post('/upload', uploadMiddleware, ctx => {
     const { name } = ctx.request.body;
     if (!name) {
