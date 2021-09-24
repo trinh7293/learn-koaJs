@@ -12,7 +12,7 @@ const app = new Koa()
 require('dotenv').config()
 
 // error handler
-const error_handler = async (ctx, next) => {
+const handleError = async (ctx, next) => {
     try {
         await next()
     } catch (err) {
@@ -23,14 +23,14 @@ const error_handler = async (ctx, next) => {
 }
 
 // logger middleware
-const loggerMid = async (ctx, next) => {
+const showLog = async (ctx, next) => {
     await next()
     const rt = ctx.response.get('X-Response-Time')
     console.log(`${ctx.method} ${ctx.url} - ${rt}`)
 }
 
 // response time middleware
-const responseTime = async (ctx, next) => {
+const getResponseTime = async (ctx, next) => {
     const start = Date.now()
     await next()
     const ms = Date.now() - start
@@ -38,9 +38,9 @@ const responseTime = async (ctx, next) => {
 }
 
 // upload file middleware
-const uploadMiddleware = multer().fields([{ name: 'file', maxCount: 1 }])
+const handleUpload = multer().fields([{ name: 'file', maxCount: 1 }])
 
-app.use(error_handler, loggerMid, responseTime)
+app.use(handleError, showLog, getResponseTime)
 
 // setup koa-mongo
 // mongodb config
@@ -61,14 +61,14 @@ router.get('home', '/', async ctx => {
 })
 
 // insert mongodb
-router.post('addProducts', '/addProduct', async ctx => {
+router.post('add-products', '/add-product', async ctx => {
     const newProduct = ctx.request.body
     const result = await ctx.db.collection('products').insert(newProduct)
     ctx.body = result
 })
 
 // upload file
-router.post('/upload', uploadMiddleware, ctx => {
+router.post('/upload', handleUpload, ctx => {
     const { name } = ctx.request.body;
     if (!name) {
         ctx.body = 'Missing name';
