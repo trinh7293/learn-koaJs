@@ -3,6 +3,9 @@
 const Koa = require('koa')
 const Router = require('koa-router')
 const mongo = require('koa-mongo')
+const bodyParser = require('koa-bodyparser')
+const multer = require('@koa/multer')
+const { saveImage } = require('./helper')
 const app = new Koa()
 
 // init environment variable
@@ -34,6 +37,9 @@ const responseTime = async (ctx, next) => {
     ctx.set('X-Response-Time', `${ms}ms`)
 }
 
+// upload file middleware
+const uploadMiddleware = multer().fields([{ name: 'file', maxCount: 1 }])
+
 app.use(error_handler, loggerMid, responseTime)
 
 // setup koa-mongo
@@ -54,9 +60,27 @@ router.get('home', '/', async ctx => {
     ctx.body = "Hello Home"
 })
 
-router.post('addProducts', 'addProduct')
+// insert mongodb
+router.post('addProducts', '/addProduct', async ctx => {
+    const newProduct = ctx.request.body
+    const result = await ctx.db.collection('products').insert(newProduct)
+    ctx.body = result
+})
+
+// upload file
+router.post('/upload', uploadMiddleware, ctx => {
+    const { name } = ctx.request.body;
+    if (!name) {
+        ctx.body = 'Missing name';
+        return;
+    }
+    saveImage(name, ctx.files.file[0].buffer);
+    ctx.body = "success";
+}
+);
 
 app.use(mongo(MONGODB_CONFIG))
+app.use(bodyParser())
 app.use(router.routes())
 app.use(router.allowedMethods())
 
