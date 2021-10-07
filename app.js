@@ -1,10 +1,10 @@
-
-//init
 const Koa = require('koa')
 const Router = require('koa-router')
 const mongo = require('koa-mongo')
 const bodyParser = require('koa-bodyparser')
 const multer = require('@koa/multer')
+const Queue = require('bull')
+const bullMaster = require('bull-master')
 const { saveImage } = require('./helper')
 const app = new Koa()
 
@@ -78,6 +78,14 @@ router.post('/upload', handleUpload, ctx => {
     ctx.body = "success";
 }
 );
+
+const videoQueue = new Queue('video transcoding')
+const pdfQueue = new Queue('pdf transcoding');
+
+router.all('/admin/queues/(.*)', bullMaster.koa({
+    queues: [videoQueue, pdfQueue],
+    prefix: '/admin/queues',
+}))
 
 app.use(mongo(MONGODB_CONFIG))
 app.use(bodyParser())
