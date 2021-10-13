@@ -1,5 +1,7 @@
+require('isomorphic-fetch');
 const Koa = require('koa')
 const Router = require('koa-router')
+const { bulkShopifyRoute } = require('./router/testBulkOperationRoute')
 const mongo = require('koa-mongo')
 const bodyParser = require('koa-bodyparser')
 const multer = require('@koa/multer')
@@ -42,30 +44,21 @@ const handleUpload = multer().fields([{ name: 'file', maxCount: 1 }])
 
 app.use(handleError, showLog, getResponseTime)
 
-// setup koa-mongo
-// mongodb config
-const MONGODB_CONFIG = {
-    uri: process.env.MONGO_URI,
-    db: process.env.MONGO_DB,
-    max: 100,
-    min: 1,
-}
-
 // setup router
 const router = Router()
 router.get('/hello', async ctx => {
-    ctx.body = "Hello An"
+    ctx.body = "fuck"
 })
 router.get('home', '/', async ctx => {
     ctx.body = "Hello Home"
 })
 
 // insert mongodb
-router.post('add-products', '/add-product', async ctx => {
-    const newProduct = ctx.request.body
-    const result = await ctx.db.collection('products').insert(newProduct)
-    ctx.body = result
-})
+// router.post('add-products', '/add-product', async ctx => {
+//     const newProduct = ctx.request.body
+//     const result = await ctx.db.collection('products').insert(newProduct)
+//     ctx.body = result
+// })
 
 // upload file
 router.post('/upload', handleUpload, ctx => {
@@ -87,9 +80,22 @@ router.all('/admin/queues/(.*)', bullMaster.koa({
     prefix: '/admin/queues',
 }))
 
+
+
+// setup koa-mongo
+// mongodb config
+const MONGODB_CONFIG = {
+    uri: process.env.MONGO_URI,
+    db: process.env.MONGO_DB,
+    max: 100,
+    min: 1,
+}
+
 app.use(mongo(MONGODB_CONFIG))
 app.use(bodyParser())
+app.use(bulkShopifyRoute.routes())
+app.use(bulkShopifyRoute.allowedMethods())
 app.use(router.routes())
 app.use(router.allowedMethods())
 
-app.listen(3000)
+app.listen(4000)

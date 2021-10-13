@@ -10,3 +10,6 @@ tmp/
 temp/
 coverage/*
 images
+
+stagedUploadsCreate
+jsonlines

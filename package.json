@@ -12,13 +12,18 @@
     "bull-master": "^1.0.5",
     "bullmq": "^1.48.3",
     "dotenv": "^10.0.0",
+    "form-data": "^4.0.0",
     "fs": "^0.0.1-security",
+    "isomorphic-fetch": "^3.0.0",
     "koa": "^2.13.1",
     "koa-bodyparser": "^4.3.0",
     "koa-mongo": "^1.9.3",
     "koa-mount": "^4.0.0",
     "koa-router": "^10.1.1",
     "multer": "^1.4.3",
-    "path": "^0.12.7"
+    "node-jq": "^2.0.0",
+    "path": "^0.12.7",
+    "shopify-api-node": "^3.8.0",
+    "uuid": "^8.3.2"
   }
 }
