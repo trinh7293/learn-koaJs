@@ -1,5 +1,4 @@
 const fs = require("fs");
-const axios = require("axios");
 const path = require("path");
 const FormData = require("form-data");
 const Router = require('koa-router')
@@ -49,66 +48,35 @@ const getShopifyClient = async (db) => {
   }
 }
 
-const testJson = [
-  {
-    // "id": "gid://shopify/Product/7015877345450",
-    "title": "Sweet new snowboard 1",
-    "productType": "Snowboard",
-    "vendor": "JadedPixel",
-    "metafields": [
-      {
-        "description": "meta1",
-        "key": "wash",
-        "namespace": "construction",
-        "type": "string",
-        "value": "carefull more ahihi"
-      },
-      {
-        "description": "meta2",
-        "key": "dry",
-        "namespace": "construction",
-        "type": "string",
-        "value": "flat"
-      },
-    ],
-    "variants": {
-      // "productId": "gid://shopify/Product/7015877345450",
-      "title": "var1"
-    }
-  },
-  {
-    // "id": "gid://shopify/Product/7015877542058",
-    "title": "Sweet new snowboard 2",
-    "productType": "Snowboard",
-    "vendor": "JadedPixel",
-    "metafields": {
-      "description": "meta1",
-      "key": "dry",
-      "namespace": "construction",
-      "type": "string",
-      "value": "flat"
-    }
-  },
-  {
-    // "id": "gid://shopify/Product/7015877673130",
-    "title": "Sweet new snowboard 3",
-    "productType": "Snowboard",
-    "vendor": "JadedPixel",
-    "metafields": {
-      "description": "meta1",
-      "key": "wash",
-      "namespace": "construction",
-      "type": "string",
-      "value": "carefull"
-    }
+const genTestJson = () => {
+  let result = []
+  for (let i = 0; i < 3; i++) {
+    result.push({
+      "title": `Sweet new snowboard ${i}`,
+      "productType": "Snowboard",
+      "vendor": "JadedPixel",
+    })
   }
-]
+  result.push({
+    "title": `Sweet new snowboard 5`,
+    "ahuhu": "Snowboard",
+    "vendor": "JadedPixel",
+  })
+  for (let i = 6; i < 8; i++) {
+    result.push({
+      "title": `Sweet new snowboard ${i}`,
+      "productType": "Snowboard",
+      "vendor": "JadedPixel",
+    })
+  }
+  return result
+}
 
 bulkShopifyRoute.get('/import-test', async ctx => {
   try {
-
+    const jsonProduct = genTestJson()
     // convert to json Line
-    const jsonLineString = await convertArrJson2JsonLine(testJson.map(item => ({
+    const jsonLineString = await convertArrJson2JsonLine(jsonProduct.map(item => ({
       input: { ...item }
     })))
     const current = new Date()
@@ -313,6 +281,43 @@ bulkShopifyRoute.get('/create-product', async ctx => {
     const res = await shopifyClient.graphql(productMutation)
 
     ctx.body = res
+  } catch (error) {
+    console.log("error", error)
+  }
+})
+
+bulkShopifyRoute.get('/count-product', async ctx => {
+  try {
+    // // get client
+    const shopifyClient = await getShopifyClient(ctx.db)
+    const count = await shopifyClient.product.count()
+
+    ctx.body = count
+  } catch (error) {
+    console.log("error", error)
+  }
+})
+bulkShopifyRoute.get('/import-speed', async ctx => {
+  try {
+    const { time: second } = ctx.request.query
+    // // get client
+    const shopifyClient = await getShopifyClient(ctx.db)
+    const count1 = await shopifyClient.product.count()
+
+    // delay func
+    const timeOutDelay = (ms) => {
+      return new Promise(resolve => {
+        setTimeout(() => {
+          resolve('resolved');
+        }, ms);
+      });
+    }
+    await timeOutDelay(1000 * second)
+    const count2 = await shopifyClient.product.count()
+    console.log(`${count2 - count1} product created after ${second} second`)
+
+
+    ctx.body = `${count2 - count1} product created after ${second} second`
   } catch (error) {
     console.log("error", error)
   }
