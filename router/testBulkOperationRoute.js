@@ -3,26 +3,9 @@ const path = require("path");
 const FormData = require("form-data");
 const Router = require('koa-router')
 const { convertArrJson2JsonLine } = require('../utils/jsonHelper')
-const { v4: uuidv4 } = require("uuid")
 const { saveFile } = require('../utils/fileHelper')
 const { JSONLINE_DIR, STAGEDUPLOADSCREATE } = require('../constant')
 const ShopifyApi = require('shopify-api-node');
-
-var util = require('util');
-var exec = require('child_process').exec;
-
-const runCurl = cmd => {
-  child = exec(cmd, function (error, stdout, stderr) {
-
-    console.log('stdout: ' + stdout);
-    console.log('stderr: ' + stderr);
-
-    if (error !== null) {
-      console.log('exec error: ' + error);
-    }
-
-  });
-}
 
 // init shopify client
 require("dotenv").config()
