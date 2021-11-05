@@ -12,20 +12,19 @@ require("dotenv").config()
 
 const bulkShopifyRoute = new Router()
 
-const getShopifyClient = async (db) => {
+const getShopifyClient = async (ctx) => {
   try {
     // get client
     const {
-      SHOP_NAME: shop
+      SHOP_NAME: shop,
     } = process.env
-    const shopData = await db.collection("shop").findOne({ shop });
+    const shopData = await ctx.mongo.db('product-importer').collection("sessions").findOne({ shop });
     const { accessToken } = shopData;
-    const shopifyClient = new ShopifyApi({
+    return new ShopifyApi({
       shopName: shop,
       accessToken,
-      apiVersion: "2021-07"
+      apiVersion: "2021-10"
     })
-    return shopifyClient
   } catch (error) {
     console.log("error", error)
   }
@@ -68,7 +67,7 @@ bulkShopifyRoute.get('/import-test', async ctx => {
 
 
     // init shopify client
-    const shopifyClient = await getShopifyClient(ctx.db)
+    const shopifyClient = await getShopifyClient(ctx)
 
     // get upload place
     const dataStr = `mutation {
@@ -103,6 +102,9 @@ bulkShopifyRoute.get('/import-test', async ctx => {
       }
       formDataUpload.append(name, value)
     })
+
+    // const testjsonL = "{\"input\":{\"handle\":\"clay-plant-pot1\",\"title\":\"options1\",\"options\":[\"<p>Classic blown clay pot for plants</p>\",\"Outdoor\"],\"variants\":[{\"options\":[\"Company 123\",\"Pot, Plants\"]},{\"options\":[\"Company 1\",\"Pot, Plants\"]},{\"options\":[\"Company 2\",\"Pot, Plants\"]},{\"options\":[\"Company 3\",\"Pot, Plants\"]}],\"published\":true}}\r\n{\"input\":{\"handle\":\"black-bean-bag\",\"title\":\"Black Beanbag\",\"options\":[\"<p>Black leather beanbag</p>\",\"Indoor\"],\"variants\":[{\"options\":[\"Company 123\",\"Black, Leather\"]},{\"options\":[\"Company 123\",\"Black, Leather\"]},{\"options\":[\"Company 123\",\"Black, Leather\"]},{\"options\":[\"Company 123\",\"Black, Leather\"]}],\"published\":true}}\r\n{\"input\":{\"handle\":\"bedside-table\",\"title\":\"Bedside Table\",\"options\":[\"<p>Wooden bedside table</p>\",\"Indoor\"],\"variants\":[{\"options\":[\"Company 123\",\"Wood, Bedroom\"]},{\"options\":[\"Company 123\",\"Wood, Bedroom\"]},{\"options\":[\"Company 123\",\"Wood, Bedroom\"]},{\"options\":[\"Company 123\",\"Wood, Bedroom\"]}],\"published\":true}}"
+    // formDataUpload.append('file', testjsonL);
     formDataUpload.append('file', jsonLineString);
 
     var requestOptions = {
@@ -140,7 +142,7 @@ bulkShopifyRoute.get('/import-test', async ctx => {
 
 bulkShopifyRoute.get('/perform-bulk', async ctx => {
   // get client
-  const shopifyClient = await getShopifyClient(ctx.db)
+  const shopifyClient = await getShopifyClient(ctx)
   const stagedUploadPath = "tmp/59957412010/bulk/484e7c72-0934-4d93-aa92-a3a285dcebf2/2021-10-13T16_31_44.838Z"
   let mutationType = "productCreate"
   // mutationType = "productUpdate"
@@ -166,7 +168,7 @@ bulkShopifyRoute.get('/perform-bulk', async ctx => {
 
 bulkShopifyRoute.get('/get-result', async ctx => {
   // get client
-  const shopifyClient = await getShopifyClient(ctx.db)
+  const shopifyClient = await getShopifyClient(ctx)
   const queryGetBulkRes = `query {
     currentBulkOperation(type: MUTATION) {
       id
@@ -187,7 +189,7 @@ bulkShopifyRoute.get('/get-result', async ctx => {
 bulkShopifyRoute.get('/get-products', async ctx => {
   try {
     // get client
-    const shopifyClient = await getShopifyClient(ctx.db)
+    const shopifyClient = await getShopifyClient(ctx)
     const dataQuery = `{
         products(first: 1) {
           edges {
@@ -229,7 +231,7 @@ bulkShopifyRoute.get('/get-products', async ctx => {
 bulkShopifyRoute.get('/delete-products', async ctx => {
   try {
     // // get client
-    const shopifyClient = await getShopifyClient(ctx.db)
+    const shopifyClient = await getShopifyClient(ctx)
     const res = await shopifyClient.product.list()
 
     const res3 = []
@@ -246,7 +248,7 @@ bulkShopifyRoute.get('/delete-products', async ctx => {
 bulkShopifyRoute.get('/create-product', async ctx => {
   try {
     // // get client
-    const shopifyClient = await getShopifyClient(ctx.db)
+    const shopifyClient = await getShopifyClient(ctx)
     const productMutation = `mutation {
       productCreate(input: {
         handle: "sweet-new"
@@ -272,7 +274,7 @@ bulkShopifyRoute.get('/create-product', async ctx => {
 bulkShopifyRoute.get('/count-product', async ctx => {
   try {
     // // get client
-    const shopifyClient = await getShopifyClient(ctx.db)
+    const shopifyClient = await getShopifyClient(ctx)
     const count = await shopifyClient.product.count()
 
     ctx.body = count
@@ -284,7 +286,7 @@ bulkShopifyRoute.get('/import-speed', async ctx => {
   try {
     const { time: second } = ctx.request.query
     // // get client
-    const shopifyClient = await getShopifyClient(ctx.db)
+    const shopifyClient = await getShopifyClient(ctx)
     const count1 = await shopifyClient.product.count()
 
     // delay func
